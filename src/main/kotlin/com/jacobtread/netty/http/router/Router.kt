@@ -34,8 +34,7 @@ class Router : SimpleChannelInboundHandler<NettyHttpRequest>(), RoutingGroup {
      * be matched.
      */
     var enable404Page: Boolean = true
-
-    private var eventHandler: HttpEventHandler? = null
+    var eventHandler: HttpEventHandler? = null
 
     /**
      * routes The list of routes for this router used for
