@@ -1,11 +1,15 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm")
+    signing
+    `maven-publish`
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+val libraryVersion: String by project
+
+group = "com.jacobtread.shttp"
+version = libraryVersion
 
 repositories {
     mavenCentral()
@@ -20,5 +24,62 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    val jvmTarget: String by project
+    kotlinOptions.jvmTarget = jvmTarget
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "Sonatype"
+            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val sonatypeUser: String? by project
+            val sonatypeKey: String? by project
+            credentials {
+                username = sonatypeUser
+                password = sonatypeKey
+            }
+        }
+    }
+
+    publications {
+        register<MavenPublication>("sonatype") {
+            from(components["java"])
+
+            pom {
+                name.set("Kotlin Simple HTTP")
+                description.set("Simple kotlin http server and routing logic")
+                url.set("https://github.com/jacobtread/kotlin-netty-http")
+
+                licenses {
+                    license {
+                        name.set("MIT")
+                        url.set("https://github.com/jacobtread/kotlin-netty-http/blob/master/LICENSE.md")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("jacobtread")
+                        name.set("Jacobtread")
+                        email.set("jacobtread@gmail.com")
+                    }
+                }
+
+                scm {
+                    url.set("https://github.com/jacobtread/kotlin-netty-http/blaze-core")
+                }
+            }
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign(publishing.publications)
 }
