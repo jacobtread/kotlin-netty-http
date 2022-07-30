@@ -1,10 +1,13 @@
 package com.jacobtread.netty.http.router
 
 import com.jacobtread.netty.http.*
-import com.jacobtread.shttp.*
+import io.netty.bootstrap.ServerBootstrap
+import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.EventLoopGroup
 import io.netty.channel.SimpleChannelInboundHandler
+import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectAggregator
 import io.netty.handler.codec.http.HttpRequestDecoder
 import io.netty.handler.codec.http.HttpResponseEncoder
@@ -105,6 +108,27 @@ class Router : SimpleChannelInboundHandler<NettyHttpRequest>(), RoutingGroup {
             eventHandler?.onExceptionHandled(e)
             return response(INTERNAL_SERVER_ERROR)
         }
+    }
+
+    /**
+     * Starts a new http server using this router as its http
+     * handler. Returning the channel future after binding.
+     *
+     * @param port The port to bind the server to
+     * @param bossGroup The boss netty event loop group
+     * @param workerGroup The worker netty event loop group
+     * @return The channel future for the server
+     */
+    fun startHttpServer(
+        port: Int,
+        bossGroup: EventLoopGroup,
+        workerGroup: EventLoopGroup,
+    ): ChannelFuture {
+        return ServerBootstrap()
+            .group(bossGroup, workerGroup)
+            .channel(NioServerSocketChannel::class.java)
+            .childHandler(this@Router)
+            .bind(port)
     }
 }
 
