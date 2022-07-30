@@ -16,6 +16,13 @@ repositories {
 }
 
 dependencies {
+    // Netty dependencies version
+    val nettyVersion: String by project
+    // Netty Dependencies
+    implementation("io.netty:netty-handler:$nettyVersion")
+    implementation("io.netty:netty-buffer:$nettyVersion")
+    implementation("io.netty:netty-codec-http:$nettyVersion")
+
     testImplementation(kotlin("test"))
 }
 
