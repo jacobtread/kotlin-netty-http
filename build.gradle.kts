@@ -8,7 +8,7 @@ plugins {
 
 val libraryVersion: String by project
 
-group = "com.jacobtread.shttp"
+group = "com.jacobtread.netty"
 version = libraryVersion
 
 repositories {
