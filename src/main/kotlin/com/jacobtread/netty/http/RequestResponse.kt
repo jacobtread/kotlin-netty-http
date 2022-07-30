@@ -78,6 +78,30 @@ fun responseHtml(content: String): HttpResponse =
     response(HttpResponseStatus.OK, Unpooled.copiedBuffer(content, Charsets.UTF_8), HTML_CONTENT_TYPE)
 
 /**
+ * Function for easily creating a response with
+ * a NOT_FOUND response
+ *
+ * @return The created response
+ */
+fun httpNotFound(): HttpResponse = response(HttpResponseStatus.NOT_FOUND)
+
+/**
+ * Function for easily creating a response with
+ * a BAD_REQUEST response
+ *
+ * @return The created response
+ */
+fun httpBadRequest(): HttpResponse = response(HttpResponseStatus.BAD_REQUEST)
+
+/**
+ * Function for easily creating a response with
+ * a INTERNAL_SERVER_ERROR response
+ *
+ * @return The created response
+ */
+fun httpInternalServerError(): HttpResponse = response(HttpResponseStatus.INTERNAL_SERVER_ERROR)
+
+/**
  * responseStatic Creates a response from a static file stored inside the
  * jar resources if the file doesn't exist or is not a valid file name then
  * the fallback file and path will be used instead. If the fallback is also

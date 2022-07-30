@@ -3,6 +3,7 @@ package com.jacobtread.netty.http
 import io.netty.handler.codec.http.FullHttpRequest
 import io.netty.handler.codec.http.HttpMethod
 import java.net.URLDecoder
+import java.net.URLEncoder
 import io.netty.handler.codec.http.HttpRequest as NettyHttpRequest
 
 /**
@@ -37,7 +38,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     /**
      * query A map of the query parameters for this request
      */
-    private val query: Map<String, String>
+    val query: Map<String, String>
 
     init {
         // Split the url into the path and query
@@ -50,6 +51,32 @@ class HttpRequest(private val http: NettyHttpRequest) {
             .removeSuffix("/")
         this.tokens = url.split('/')
         query = createQueryMap(parts.getOrNull(1))
+    }
+
+    /**
+     * Reconstructs the url that this object was created with
+     * by joining the tokens and query parameters together.
+     *
+     * This is intended for debug use in order to display the
+     * url that was queried
+     *
+     * @return The re-constructed url
+     */
+    fun reconstructUrl(): String {
+        val urlBuilder = StringBuilder("/")
+        tokens.joinTo(urlBuilder, "/") { it }
+        val query = query
+        if (query.isNotEmpty()) {
+            urlBuilder.append("?")
+            query.entries.joinTo(urlBuilder, "&") { (key, value) ->
+                val keyEncoded = URLEncoder.encode(key, "UTF-8")
+                val valueEncoded = URLEncoder.encode(value, "UTF-8")
+                urlBuilder.append(keyEncoded)
+                    .append('=')
+                    .append(valueEncoded)
+            }
+        }
+        return urlBuilder.toString()
     }
 
     /**

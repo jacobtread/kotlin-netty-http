@@ -26,6 +26,18 @@ internal class ResponseTest {
     }
 
     @Test
+    fun `test response types`() {
+        var testResponse =  httpInternalServerError()
+        assertEquals(testResponse.status(), HttpResponseStatus.INTERNAL_SERVER_ERROR)
+
+        testResponse = httpBadRequest()
+        assertEquals(testResponse.status(), HttpResponseStatus.BAD_REQUEST)
+
+        testResponse = httpNotFound()
+        assertEquals(testResponse.status(), HttpResponseStatus.NOT_FOUND)
+    }
+
+    @Test
     fun `test html response`() {
         val html = "<html></html>"
         val testResponse = responseHtml(html)
