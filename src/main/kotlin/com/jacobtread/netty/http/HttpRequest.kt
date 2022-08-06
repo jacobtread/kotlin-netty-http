@@ -71,9 +71,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
             query.entries.joinTo(urlBuilder, "&") { (key, value) ->
                 val keyEncoded = URLEncoder.encode(key, "UTF-8")
                 val valueEncoded = URLEncoder.encode(value, "UTF-8")
-                urlBuilder.append(keyEncoded)
-                    .append('=')
-                    .append(valueEncoded)
+                "$keyEncoded=$valueEncoded"
             }
         }
         return urlBuilder.toString()
