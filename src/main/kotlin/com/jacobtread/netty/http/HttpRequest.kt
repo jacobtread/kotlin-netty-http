@@ -1,6 +1,7 @@
 package com.jacobtread.netty.http
 
 import io.netty.handler.codec.http.FullHttpRequest
+import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.codec.http.HttpMethod
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -28,6 +29,8 @@ class HttpRequest(private val http: NettyHttpRequest) {
      * http request. Used by the Path Route to match the request method
      */
     val method: HttpMethod get() = http.method()
+
+    val headers: HttpHeaders = http.headers()
 
     /**
      * tokens The tokens aka all the values between each slash in the
