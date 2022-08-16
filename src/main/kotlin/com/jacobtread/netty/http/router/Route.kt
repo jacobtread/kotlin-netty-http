@@ -35,6 +35,7 @@ abstract class Route(pattern: String) : RouteHandler {
         .removePrefix("/")
         .removePrefix("/")
         .split('/')
+        .filter { it.isNotBlank() }
 
     /**
      * tokenCount Returns the number of tokens this pattern contains
@@ -45,14 +46,16 @@ abstract class Route(pattern: String) : RouteHandler {
      * Adds middleware to this route
      *
      * @param middlewares The middleware to add
+     * @return The self instance to use as a builder
      */
-    fun addMiddleware(vararg middlewares: Middleware) {
+    fun middleware(vararg middlewares: Middleware): Route {
         var middleware = middleware
         if (middleware == null) {
             middleware = ArrayList()
             this.middleware = middleware
         }
         middleware.addAll(middlewares)
+        return this
     }
 
     /**
@@ -81,6 +84,7 @@ abstract class Route(pattern: String) : RouteHandler {
      * @return True if all the tokens match otherwise false
      */
     fun matchRange(request: HttpRequest, startIndex: Int, count: Int): Boolean {
+        if (count == 0) return true
         val requestTokens = request.tokens
         // If we don't have enough tokens
         if ((requestTokens.size - startIndex) < count) return false
