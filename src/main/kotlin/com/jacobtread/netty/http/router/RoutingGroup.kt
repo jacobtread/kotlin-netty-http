@@ -134,3 +134,11 @@ inline fun RoutingGroup.group(pattern: String = "", init: GroupRoute.() -> Unit)
     routes.add(group)
     return group
 }
+
+inline fun RoutingGroup.middlewareGroup(vararg middleware: Middleware, init: GroupRoute.() -> Unit): GroupRoute {
+    val group = GroupRoute("")
+    group.middleware(*middleware)
+    group.init()
+    routes.add(group)
+    return group
+}
