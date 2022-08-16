@@ -46,6 +46,19 @@ interface RoutingGroup {
     }
 
     /**
+     * route Adds a new Path Route to the routes list that uses
+     * the provided pattern, method and handler
+     *
+     * @param pattern The pattern to use on the route
+     * @param method The method to match for the route
+     * @param middleware The list of middleware handlers
+     * @param handler The handler for handling route requests
+     */
+    fun route(pattern: String, method: HttpMethod?, middleware: List<Middleware>, handler: RequestHandler) {
+        routes.add(PathRoute(pattern, method, handler))
+    }
+
+    /**
      * route Shortcut function for adding a route
      * that accepts any method
      *
@@ -65,6 +78,17 @@ interface RoutingGroup {
     fun get(pattern: String, handler: RequestHandler) = route(pattern, HttpMethod.GET, handler)
 
     /**
+     * get Shortcut function for adding a route
+     * which accepts GET requests from the provided
+     * pattern
+     *
+     * @param pattern The pattern for the route
+     * @param middleware The list of middleware handlers
+     * @param handler The handler for the route
+     */
+    fun get(pattern: String, middleware: List<Middleware>, handler: RequestHandler) = route(pattern, HttpMethod.GET, handler)
+
+    /**
      * post Shortcut function for adding a route
      * which accepts POST requests from the provided
      * pattern
@@ -73,6 +97,17 @@ interface RoutingGroup {
      * @param handler The handler for the route
      */
     fun post(pattern: String, handler: RequestHandler) = route(pattern, HttpMethod.POST, handler)
+
+    /**
+     * post Shortcut function for adding a route
+     * which accepts POST requests from the provided
+     * pattern
+     *
+     * @param pattern The pattern for the route
+     * @param middleware The list of middleware handlers
+     * @param handler The handler for the route
+     */
+    fun post(pattern: String, middleware: List<Middleware>, handler: RequestHandler) = route(pattern, HttpMethod.POST, handler)
 
     /**
      * put Shortcut function for adding a route
@@ -85,6 +120,16 @@ interface RoutingGroup {
     fun put(pattern: String, handler: RequestHandler) = route(pattern, HttpMethod.PUT, handler)
 
     /**
+     * put Shortcut function for adding a route
+     * which accepts PUT requests from the provided
+     * pattern
+     *
+     * @param pattern The pattern for the route
+     * @param handler The handler for the route
+     */
+    fun put(pattern: String,middleware: List<Middleware>, handler: RequestHandler) = route(pattern, HttpMethod.PUT, handler)
+
+    /**
      * patch Shortcut function for adding a route
      * which accepts PATCH requests from the provided
      * pattern
@@ -93,6 +138,16 @@ interface RoutingGroup {
      * @param handler The handler for the route
      */
     fun patch(pattern: String, handler: RequestHandler) = route(pattern, HttpMethod.PATCH, handler)
+    /**
+     * patch Shortcut function for adding a route
+     * which accepts PATCH requests from the provided
+     * pattern
+     *
+     * @param pattern The pattern for the route
+     * @param middleware The list of middleware handlers
+     * @param handler The handler for the route
+     */
+    fun patch(pattern: String, middleware: List<Middleware>,handler: RequestHandler) = route(pattern, HttpMethod.PATCH, handler)
 
     /**
      * delete Shortcut function for adding a route
@@ -103,6 +158,16 @@ interface RoutingGroup {
      * @param handler The handler for the route
      */
     fun delete(pattern: String, handler: RequestHandler) = route(pattern, HttpMethod.DELETE, handler)
+    /**
+     * delete Shortcut function for adding a route
+     * which accepts DELETE requests from the provided
+     * pattern
+     *
+     * @param pattern The pattern for the route
+     * @param middleware The list of middleware handlers
+     * @param handler The handler for the route
+     */
+    fun delete(pattern: String, middleware: List<Middleware>,handler: RequestHandler) = route(pattern, HttpMethod.DELETE, handler)
 
     /**
      * everything Shortcut function for handling every request that
@@ -114,7 +179,18 @@ interface RoutingGroup {
      *
      * @param handler The handler for the route
      */
-    fun everything(handler: RequestHandler) = route(":*", null, handler)
+    fun everything(handler: RequestHandler) = route(":*", null, handler)    /**
+     * everything Shortcut function for handling every request that
+     * hits this route. This should be added after all other routes
+     * because it will match any content its given
+     *
+     * Contents matched will be provided to the request as the "*"
+     * parameter
+     *
+     * @param middleware The list of middleware handlers
+     * @param handler The handler for the route
+     */
+    fun everything(middleware: List<Middleware>, handler: RequestHandler) = route(":*", null, handler)
 }
 
 /**

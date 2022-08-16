@@ -1,6 +1,7 @@
 package com.jacobtread.netty.http.router
 
 import com.jacobtread.netty.http.HttpRequest
+import com.jacobtread.netty.http.HttpResponse
 
 /**
  * Route Represents a route handler which matches requests against
@@ -19,6 +20,12 @@ import com.jacobtread.netty.http.HttpRequest
  */
 abstract class Route(pattern: String) : RouteHandler {
 
+    constructor(pattern: String, middleware: List<Middleware>) : this(pattern) {
+        this.middleware = ArrayList(middleware)
+    }
+
+    private var middleware: ArrayList<Middleware>? = null
+
     /**
      * patternTokens A list containing the individual tokens of the
      * route pattern the leading and trailing slashes are removed
@@ -33,6 +40,35 @@ abstract class Route(pattern: String) : RouteHandler {
      * tokenCount Returns the number of tokens this pattern contains
      */
     val tokenCount: Int get() = patternTokens.size
+
+    /**
+     * Adds middleware to this route
+     *
+     * @param middlewares The middleware to add
+     */
+    fun addMiddleware(vararg middlewares: Middleware) {
+        var middleware = middleware
+        if (middleware == null) {
+            middleware = ArrayList()
+            this.middleware = middleware
+        }
+        middleware.addAll(middlewares)
+    }
+
+    /**
+     * Handles middleware for this request
+     *
+     * @param request The incoming request
+     * @return A response from middleware or null
+     */
+    fun handleMiddleware(request: HttpRequest) :HttpResponse? {
+        val middlewares = middleware ?: return null
+        for (middleware in middlewares) {
+            val response = middleware.handleRequest(request)
+            if (response != null) return response
+        }
+        return null
+    }
 
     /**
      * matchRange Matches the specified range of request tokens from the start index

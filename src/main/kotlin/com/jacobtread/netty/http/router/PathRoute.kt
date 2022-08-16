@@ -37,6 +37,7 @@ class PathRoute(
         if (method != null && method != request.method) return null
         // Match the url with the catch-all inclusive matcher
         if (!matchWithCatchall(start, request)) return null
-        return request.handler()
+        // Handle middleware and response
+        return  handleMiddleware(request) ?: request.handler()
     }
 }

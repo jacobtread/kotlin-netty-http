@@ -48,6 +48,9 @@ class GroupRoute(pattern: String) : Route(pattern), RoutingGroup {
         if (!matchRange(request, start, tokenCount)) return null
         // The next starting position offset by the consumed tokens
         val offsetStart = start + tokenCount
+        // Handle middleware
+        val mResponse = handleMiddleware(request)
+        if (mResponse != null) return mResponse
         // Try routing with the child routes
         for (route in routes) {
             val response = route.handle(offsetStart, request)
