@@ -69,8 +69,7 @@ class Router : SimpleChannelInboundHandler<NettyHttpRequest>(), RoutingGroup {
      * @param msg The http request message
      */
     override fun channelRead0(ctx: ChannelHandlerContext, msg: NettyHttpRequest) {
-        val channel = ctx.channel()
-        val request = HttpRequest(channel, msg) // Create a request wrapper
+        val request = HttpRequest(msg) // Create a request wrapper
 
         // Call the event handler with the request object
         eventHandler?.onRequestReceived(request)

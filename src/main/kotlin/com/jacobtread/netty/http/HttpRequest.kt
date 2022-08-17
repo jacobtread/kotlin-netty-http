@@ -1,10 +1,8 @@
 package com.jacobtread.netty.http
 
-import io.netty.channel.Channel
 import io.netty.handler.codec.http.FullHttpRequest
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.codec.http.HttpMethod
-import io.netty.util.AttributeKey
 import java.net.URLDecoder
 import java.net.URLEncoder
 import io.netty.handler.codec.http.HttpRequest as NettyHttpRequest
@@ -14,15 +12,13 @@ import io.netty.handler.codec.http.HttpRequest as NettyHttpRequest
  * which contains the url tokens as well as a parsed query and
  * functions for accessing the request body
  *
- * @property channel The underlying channel this request is from
  * @property http The netty http request
  *
  * @constructor Create HttpRequest and parses the tokens and query string
  */
-class HttpRequest internal constructor(
-    private val channel: Channel,
-    private val http: NettyHttpRequest,
-) {
+class HttpRequest internal constructor(val http: NettyHttpRequest) {
+
+    private var attributes: HashMap<String, Any>? = null
 
     /**
      * Underlying params map stores the parameters that were
@@ -249,36 +245,39 @@ class HttpRequest internal constructor(
     fun contentString(): String = contentBytes().decodeToString()
 
     /**
-     * Sets an attribute on the channel this request came
-     * from.
+     * Sets an attribute on this request
      *
      * This can be used to set state across request handlers for
      * example setting an authentication state through a middleware
      * handler (e.g. [com.jacobtread.netty.http.middleware.GuardMiddleware])
      *
-     * @see getChannelAttr for retrieving set attributes
+     * @see getAttribute for retrieving set attributes
      *
      * @param T The type of value stored for this attribute key
-     * @param attributeKey The key used to identify this attribute
+     * @param key The key used to identify this attribute
      * @param value The value to store for the attribute
      */
-    fun <T> setChannelAttr(attributeKey: AttributeKey<T>, value: T) {
-        channel.attr(attributeKey)
-            .set(value)
+    fun <T> setAttribute(key: String, value: T) {
+        val attributes: HashMap<String, Any> = this.attributes ?: HashMap()
+        attributes[key] = value as Any /* Erasing the type of the value */
+        if (this.attributes == null) {
+            this.attributes = attributes
+        }
     }
 
     /**
-     * Retrieves an attribute from the channel this request
-     * came from.
+     * Retrieves an attribute from this request
      *
-     * @see setChannelAttr for setting attributes
+     * @see setAttribute for setting attributes
      *
      * @param T The type of value stored for this attribute key
-     * @param attributeKey The key used to identify this attribute
+     * @param key The key used to identify this attribute
      * @return The stored attribute value or null if none are present
      */
-    fun <T> getChannelAttr(attributeKey: AttributeKey<T>): T? {
-        return channel.attr(attributeKey)
-            .get()
+    fun <T> getAttribute(key: String): T? {
+        val attributes = this.attributes
+        val value = attributes?.get(key) ?: return null
+        @Suppress("UNCHECKED_CAST")
+        return value as T /* Casting value unsafely back to type */
     }
 }
