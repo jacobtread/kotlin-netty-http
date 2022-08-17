@@ -80,6 +80,8 @@ class Router : SimpleChannelInboundHandler<NettyHttpRequest>(), RoutingGroup {
         eventHandler?.onRequestReceived(request)
 
         val response = handleHttpRequest(request) // Handle the response
+        eventHandler?.onResponsePreSend(response)
+
         // Write the response and flush
         ctx.writeAndFlush(response)
 

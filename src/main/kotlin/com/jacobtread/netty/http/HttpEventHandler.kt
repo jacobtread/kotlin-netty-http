@@ -15,6 +15,15 @@ interface HttpEventHandler {
     fun onRequestReceived(request: HttpRequest)
 
     /**
+     * Called when any http responses are about to
+     * be sent giving the server the opportunity to
+     * modify them
+     *
+     * @param response The response being sent
+     */
+    fun onResponsePreSend(response: HttpResponse)
+
+    /**
      * Called when responses are sent to http requests.
      *
      * @param response The http response sent
