@@ -2,6 +2,7 @@ package com.jacobtread.netty.http.router
 
 import com.jacobtread.netty.http.HttpRequest
 import com.jacobtread.netty.http.HttpResponse
+import com.jacobtread.netty.http.middleware.Middleware
 
 /**
  * Route Represents a route handler which matches requests against
@@ -18,11 +19,7 @@ import com.jacobtread.netty.http.HttpResponse
  * Note: The catch-all parameter can only be used as the last parameter attempting to use
  * it anywhere else will result in it simply only matching one token
  */
-abstract class Route(pattern: String) : RouteHandler {
-
-    constructor(pattern: String, middleware: List<Middleware>) : this(pattern) {
-        this.middleware = ArrayList(middleware)
-    }
+abstract class Route internal constructor(pattern: String) : RouteHandler {
 
     private var middleware: ArrayList<Middleware>? = null
 
@@ -64,7 +61,7 @@ abstract class Route(pattern: String) : RouteHandler {
      * @param request The incoming request
      * @return A response from middleware or null
      */
-    fun handleMiddleware(request: HttpRequest) :HttpResponse? {
+    fun handleMiddleware(request: HttpRequest): HttpResponse? {
         val middlewares = middleware ?: return null
         for (middleware in middlewares) {
             val response = middleware.handleRequest(request)

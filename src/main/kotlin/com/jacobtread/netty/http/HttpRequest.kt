@@ -1,45 +1,58 @@
 package com.jacobtread.netty.http
 
+import io.netty.channel.Channel
 import io.netty.handler.codec.http.FullHttpRequest
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.codec.http.HttpMethod
+import io.netty.util.AttributeKey
 import java.net.URLDecoder
 import java.net.URLEncoder
 import io.netty.handler.codec.http.HttpRequest as NettyHttpRequest
 
 /**
- * HttpRequest A wrapper around the netty HttpRequest implementation
+ * A wrapper around the netty HttpRequest implementation
  * which contains the url tokens as well as a parsed query and
  * functions for accessing the request body
  *
+ * @property channel The underlying channel this request is from
  * @property http The netty http request
- * @constructor Create empty HttpRequest and parses the tokens and query string
+ *
+ * @constructor Create HttpRequest and parses the tokens and query string
  */
-class HttpRequest(private val http: NettyHttpRequest) {
+class HttpRequest internal constructor(
+    private val channel: Channel,
+    private val http: NettyHttpRequest,
+) {
 
     /**
-     * params Underlying params map stores the parameters that were
+     * Underlying params map stores the parameters that were
      * parsed when the url for the request was matched. This will be
      * null if there were no parameters matched on this route
      */
     private var params: HashMap<String, String>? = null
 
     /**
-     * method Wrapper field for accessing the method of the underlying
+     * Wrapper field for accessing the method of the underlying
      * http request. Used by the Path Route to match the request method
      */
-    val method: HttpMethod get() = http.method()
-
-    val headers: HttpHeaders = http.headers()
+    val method: HttpMethod
+        get() = http.method()
 
     /**
-     * tokens The tokens aka all the values between each slash in the
+     * Wrapper field for accessing the headers of the underlying
+     * request
+     */
+    val headers: HttpHeaders get() = http.headers()
+
+    /**
+     * The tokens aka all the values between each slash in the
      * url excluding those after the query question mark
      */
     val tokens: List<String>
 
     /**
-     * query A map of the query parameters for this request
+     * A mapping of the query parameters to their values for the underlying
+     * request. This is parsed from the url using [createQueryMap]
      */
     val query: Map<String, String>
 
@@ -81,7 +94,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     }
 
     /**
-     * createQueryMap Parses the provided query string splitting the values
+     * Parses the provided query string splitting the values
      * into pairs and storing them in a HashMap as key values. If the provided
      * query string is empty or null an empty map is returned instead
      *
@@ -107,7 +120,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     }
 
     /**
-     * setParam Sets a parameter on the request. This will initialize
+     * Sets a parameter on the request. This will initialize
      * the underlying parameters map if it hasn't already been initialized
      * this should only be used by the route matcher when matching the route
      *
@@ -120,7 +133,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     }
 
     /**
-     * param Retrieves a route matched parameter will throw an illegal state exception
+     * Retrieves a route matched parameter will throw an illegal state exception
      * if the parameter was not defined on the route or if no parameters were defined
      * at all
      *
@@ -137,7 +150,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     }
 
     /**
-     * paramInt Retrieves the route parameter and parses it as an integer will
+     * Retrieves the route parameter and parses it as an integer will
      * throw bad request exception if the parameter was not an integer
      *
      * @param key The key of the route parameter
@@ -149,7 +162,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     fun paramInt(key: String, radix: Int = 10): Int = param(key).toIntOrNull(radix) ?: throw BadRequestException()
 
     /**
-     * query Retrieves the query value with the provided key.
+     * Retrieves the query value with the provided key.
      * Will throw a BadRequestException if the query key was
      * not provided
      *
@@ -164,7 +177,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     fun query(key: String): String = query[key] ?: throw BadRequestException()
 
     /**
-     * queryOrNull Retrieves the query value of the provided key.
+     * Retrieves the query value of the provided key.
      * Returning null if the key was not found
      *
      * @see query Alternative to this which throws [BadRequestException] when not found
@@ -175,7 +188,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     fun queryOrNull(key: String): String? = query[key]
 
     /**
-     * hasQuery Returns whether the request has
+     * Returns whether the request has
      * the provided query key
      *
      * @param key The key to search for
@@ -184,7 +197,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     fun hasQuery(key: String): Boolean = query.containsKey(key)
 
     /**
-     * queryInt Retrieves the query value of the provided key as
+     * Retrieves the query value of the provided key as
      * an integer. Will throw BadRequestException if the key was
      * not provided or the provided value was not an integer
      *
@@ -197,7 +210,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     fun queryInt(key: String, radix: Int = 10): Int = query[key]?.toIntOrNull(radix) ?: throw BadRequestException()
 
     /**
-     * queryInt Retrieves the query value of the provided key as
+     * Retrieves the query value of the provided key as
      * an integer. Will return the provided default value if the
      * key wasn't provided or wasn't an integer
      *
@@ -210,7 +223,7 @@ class HttpRequest(private val http: NettyHttpRequest) {
     fun queryInt(key: String, default: Int, radix: Int = 10): Int = query[key]?.toIntOrNull(radix) ?: default
 
     /**
-     * contentBytes Reads the body of the request as a ByteArray
+     * Reads the body of the request as a ByteArray
      * and returns the result
      *
      * @see contentString For retrieving the content as a string instead
@@ -227,11 +240,45 @@ class HttpRequest(private val http: NettyHttpRequest) {
     }
 
     /**
-     * contentString Reads the body of the request as a ByteArray
+     * Reads the body of the request as a ByteArray
      * and decodes it as a UTF-8 string and returns it
      *
      * @throws BadRequestException Thrown if the request doesn't have a body
      * @return The contents as a UTF-8 String
      */
     fun contentString(): String = contentBytes().decodeToString()
+
+    /**
+     * Sets an attribute on the channel this request came
+     * from.
+     *
+     * This can be used to set state across request handlers for
+     * example setting an authentication state through a middleware
+     * handler (e.g. [com.jacobtread.netty.http.middleware.GuardMiddleware])
+     *
+     * @see getChannelAttr for retrieving set attributes
+     *
+     * @param T The type of value stored for this attribute key
+     * @param attributeKey The key used to identify this attribute
+     * @param value The value to store for the attribute
+     */
+    fun <T> setChannelAttr(attributeKey: AttributeKey<T>, value: T) {
+        channel.attr(attributeKey)
+            .set(value)
+    }
+
+    /**
+     * Retrieves an attribute from the channel this request
+     * came from.
+     *
+     * @see setChannelAttr for setting attributes
+     *
+     * @param T The type of value stored for this attribute key
+     * @param attributeKey The key used to identify this attribute
+     * @return The stored attribute value or null if none are present
+     */
+    fun <T> getChannelAttr(attributeKey: AttributeKey<T>): T? {
+        return channel.attr(attributeKey)
+            .get()
+    }
 }

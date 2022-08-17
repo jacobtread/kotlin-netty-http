@@ -7,7 +7,6 @@ package com.jacobtread.netty.http
  * with [onExceptionHandled]
  */
 interface HttpEventHandler {
-
     /**
      * Called when any http requests are received.
      *

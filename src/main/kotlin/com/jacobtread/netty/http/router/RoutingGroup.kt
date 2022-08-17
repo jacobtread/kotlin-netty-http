@@ -1,6 +1,7 @@
 package com.jacobtread.netty.http.router
 
 import com.jacobtread.netty.http.RequestHandler
+import com.jacobtread.netty.http.middleware.Middleware
 import io.netty.handler.codec.http.HttpMethod
 
 /**
