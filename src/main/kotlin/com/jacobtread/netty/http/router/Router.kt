@@ -2,11 +2,8 @@ package com.jacobtread.netty.http.router
 
 import com.jacobtread.netty.http.*
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.ChannelFuture
+import io.netty.channel.*
 import io.netty.channel.ChannelHandler.Sharable
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.EventLoopGroup
-import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectAggregator
 import io.netty.handler.codec.http.HttpRequestDecoder
@@ -132,11 +129,10 @@ class Router : SimpleChannelInboundHandler<NettyHttpRequest>(), RoutingGroup {
 }
 
 /**
- * createRouter Helper function for creating and
+ * Helper function for creating and
  * initializing a router with its routes
  *
  * @param init The initializer function
- * @receiver The router created for initializing
  * @return The initialized routing
  */
 inline fun createRouter(init: Router.() -> Unit): Router {
@@ -145,3 +141,31 @@ inline fun createRouter(init: Router.() -> Unit): Router {
     return router
 }
 
+/**
+ * Attempts to retrieve the http router from the pipeline
+ * of the channel from the receiver
+ *
+ * @return The router or null if none
+ */
+fun Channel.getHttpRouter(): Router? = this.pipeline().get(Router::class.java)
+
+/**
+ * Helper function for creating a router and starting
+ * a http server from it
+ *
+ * @param port The port to bind the server to
+ * @param bossGroup The boss netty event loop group
+ * @param workerGroup The worker netty event loop group
+ * @param init The initializer function
+ * @return The channel future create when starting the server
+ */
+inline fun createHttpServer(
+    port: Int,
+    bossGroup: EventLoopGroup,
+    workerGroup: EventLoopGroup,
+    init: Router.() -> Unit,
+): ChannelFuture {
+    val router = Router()
+    router.init()
+    return router.startHttpServer(port, bossGroup, workerGroup)
+}
