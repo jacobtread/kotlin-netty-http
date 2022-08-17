@@ -21,6 +21,10 @@ import com.jacobtread.netty.http.middleware.Middleware
  */
 abstract class Route internal constructor(pattern: String) : RouteHandler {
 
+    /**
+     * List of middleware for this request. Reference
+     * is always null until middleware is added
+     */
     private var middleware: ArrayList<Middleware>? = null
 
     /**
@@ -61,7 +65,7 @@ abstract class Route internal constructor(pattern: String) : RouteHandler {
      * @param request The incoming request
      * @return A response from middleware or null
      */
-    fun handleMiddleware(request: HttpRequest): HttpResponse? {
+    protected fun handleMiddleware(request: HttpRequest): HttpResponse? {
         val middlewares = middleware ?: return null
         for (middleware in middlewares) {
             val response = middleware.handleRequest(request)
@@ -80,7 +84,7 @@ abstract class Route internal constructor(pattern: String) : RouteHandler {
      * @param count The total number of tokens to match
      * @return True if all the tokens match otherwise false
      */
-    fun matchRange(request: HttpRequest, startIndex: Int, count: Int): Boolean {
+    protected fun matchRange(request: HttpRequest, startIndex: Int, count: Int): Boolean {
         if (count == 0) return true
         val requestTokens = request.tokens
         // If we don't have enough tokens
@@ -107,7 +111,7 @@ abstract class Route internal constructor(pattern: String) : RouteHandler {
      * @param request The request to match
      * @return Whether the tokens were matches as a catch-all
      */
-    fun matchWithCatchall(start: Int, request: HttpRequest): Boolean {
+    protected fun matchWithCatchall(start: Int, request: HttpRequest): Boolean {
         val requestTokens = request.tokens
         val tokenCount = patternTokens.size
         if (tokenCount > 0 && patternTokens.last() == ":*") {

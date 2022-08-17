@@ -22,6 +22,9 @@ import io.netty.handler.codec.http.HttpMethod
  *
  * There is also the [everything] function which is for creating routes
  * that catch requests from every method and url past the current match
+ * 
+ * The [fallback] function is similar to [everything] except it doesn't
+ * set the * parameter
  *
  * New routing groups can be created with the [group] builder function
  * which creates a new group within this group
@@ -29,18 +32,19 @@ import io.netty.handler.codec.http.HttpMethod
 interface RoutingGroup {
 
     /**
-     * routes The route storage implementation.
+     * The route storage implementation.
      * Implemented on the underlying class
      */
     val routes: ArrayList<RouteHandler>
 
     /**
-     * route Adds a new Path Route to the routes list that uses
+     * Adds a new Path Route to the routes list that uses
      * the provided pattern, method and handler
      *
      * @param pattern The pattern to use on the route
      * @param method The method to match for the route
      * @param handler The handler for handling route requests
+     * @return The created path route
      */
     fun route(pattern: String, method: HttpMethod?, handler: RequestHandler): PathRoute {
         val route = PathRoute(pattern, method, handler)
@@ -49,85 +53,111 @@ interface RoutingGroup {
     }
 
     /**
-     * route Shortcut function for adding a route
+     * Shortcut function for adding a route
      * that accepts any method
      *
      * @param pattern The pattern for the route
      * @param handler The handler for the route
+     * @return The created path route
      */
     fun route(pattern: String, handler: RequestHandler): PathRoute = route(pattern, null, handler)
 
     /**
-     * get Shortcut function for adding a route
-     * which accepts GET requests from the provided
-     * pattern
+     * function for adding a route which accepts GET requests
+     * that match the provided pattern relative to the previous
+     * routing groups
      *
      * @param pattern The pattern for the route
      * @param handler The handler for the route
+     * @return The created path route
      */
     fun get(pattern: String, handler: RequestHandler): PathRoute = route(pattern, HttpMethod.GET, handler)
 
     /**
-     * post Shortcut function for adding a route
-     * which accepts POST requests from the provided
-     * pattern
+     * function for adding a route which accepts POST requests
+     * that match the provided pattern relative to the previous
+     * routing groups
      *
      * @param pattern The pattern for the route
      * @param handler The handler for the route
+     * @return The created path route
      */
     fun post(pattern: String, handler: RequestHandler): PathRoute = route(pattern, HttpMethod.POST, handler)
 
     /**
-     * put Shortcut function for adding a route
-     * which accepts PUT requests from the provided
-     * pattern
+     * function for adding a route which accepts PUT requests
+     * that match the provided pattern relative to the previous
+     * routing groups
      *
      * @param pattern The pattern for the route
      * @param handler The handler for the route
+     * @return The created path route
      */
     fun put(pattern: String, handler: RequestHandler): PathRoute = route(pattern, HttpMethod.PUT, handler)
 
     /**
-     * patch Shortcut function for adding a route
-     * which accepts PATCH requests from the provided
-     * pattern
+     * function for adding a route which accepts PATCH requests
+     * that match the provided pattern relative to the previous
+     * routing groups
      *
      * @param pattern The pattern for the route
      * @param handler The handler for the route
+     * @return The created path route
      */
     fun patch(pattern: String, handler: RequestHandler): PathRoute = route(pattern, HttpMethod.PATCH, handler)
 
     /**
-     * delete Shortcut function for adding a route
-     * which accepts DELETE requests from the provided
-     * pattern
+     * function for adding a route which accepts DELETE requests
+     * that match the provided pattern relative to the previous
+     * routing groups
      *
      * @param pattern The pattern for the route
      * @param handler The handler for the route
+     * @return The created path route
      */
     fun delete(pattern: String, handler: RequestHandler): PathRoute = route(pattern, HttpMethod.DELETE, handler)
 
     /**
-     * everything Shortcut function for handling every request that
-     * hits this route. This should be added after all other routes
-     * because it will match any content its given
+     * function for adding a route which accepts requests from any
+     * method with any path. Used as a sort of catch-all route which
+     * will accept anything that reaches it
      *
      * Contents matched will be provided to the request as the "*"
      * parameter
      *
      * @param handler The handler for the route
+     * @return The created path route
      */
     fun everything(handler: RequestHandler): PathRoute = route(":*", null, handler)
+
+    /**
+     * function for adding a route which accepts requests from any
+     * method with any path. Used as a sort of catch-all route which
+     * will accept anything that reaches it
+     *
+     * This is similar to [everything] except the * parameter is not
+     * set this is a simpler version which doesn't attempt to match
+     * the pattern
+     *
+     * @param handler The handler for the route
+     * @return The created path route
+     */
+    fun fallback(handler: RequestHandler): FallbackRoute {
+        val route = FallbackRoute(handler)
+        routes.add(route)
+        return route
+    }
 }
 
 /**
- * group Inline function for initializing routing groups
+ * Inline function for initializing routing groups
  * initializes the routes for the group using the provided
  * initialization function and adds the group to the routes
  *
  * @param pattern The pattern for this routing group
  * @param init The initialization function
- * @receiver The created group to initialize
+ * @receiver The group this group will belong to
+ * @return The created group
  */
 inline fun RoutingGroup.group(pattern: String = "", init: GroupRoute.() -> Unit): GroupRoute {
     val group = GroupRoute(pattern)
@@ -136,6 +166,18 @@ inline fun RoutingGroup.group(pattern: String = "", init: GroupRoute.() -> Unit)
     return group
 }
 
+/**
+ * Similar to [group] except rather than matching a specific pattern for the
+ * group this is used to create a separate group under the current group
+ * with a list of middleware to check first
+ *
+ * Can be used to guard a group of routes with middleware
+ *
+ * @param middleware The middleware to use for this group
+ * @param init The initialization function
+ * @receiver The group this group will belong to
+ * @return The created group
+ */
 inline fun RoutingGroup.middlewareGroup(vararg middleware: Middleware, init: GroupRoute.() -> Unit): GroupRoute {
     val group = GroupRoute("")
     group.middleware(*middleware)
