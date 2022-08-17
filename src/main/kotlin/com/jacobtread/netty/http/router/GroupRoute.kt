@@ -45,7 +45,7 @@ class GroupRoute(pattern: String) : Route(pattern), RoutingGroup {
     override fun handle(start: Int, request: HttpRequest): HttpResponse? {
         val tokenCount = tokenCount
         // Try and match the tokens of the request
-        if (!matchRange(request, start, tokenCount)) return null
+        if (!matchRange(request, start, tokenCount, false)) return null
         // The next starting position offset by the consumed tokens
         val offsetStart = start + tokenCount
         // Handle middleware

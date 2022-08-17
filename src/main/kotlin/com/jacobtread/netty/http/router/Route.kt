@@ -84,11 +84,13 @@ abstract class Route internal constructor(pattern: String) : RouteHandler {
      * @param count The total number of tokens to match
      * @return True if all the tokens match otherwise false
      */
-    protected fun matchRange(request: HttpRequest, startIndex: Int, count: Int): Boolean {
+    protected fun matchRange(request: HttpRequest, startIndex: Int, count: Int, strict: Boolean): Boolean {
         if (count == 0) return true
         val requestTokens = request.tokens
         // If we don't have enough tokens
-        if ((requestTokens.size - startIndex) != count) return false
+        val tokenDiff = requestTokens.size - startIndex
+
+        if ((strict && tokenDiff != count) || tokenDiff < count) return false
         for (i in 0 until count) {
             val token = patternTokens[i]
             val value = requestTokens[startIndex + i]
@@ -116,7 +118,7 @@ abstract class Route internal constructor(pattern: String) : RouteHandler {
         val tokenCount = patternTokens.size
         if (tokenCount > 0 && patternTokens.last() == ":*") {
             // Check that everything until the catch-all is matching
-            if (!matchRange(request, start, tokenCount - 1)) return false
+            if (!matchRange(request, start, tokenCount - 1, true)) return false
             // The index from where to start the capture
             val catchIndex = start + tokenCount - 1
             val builder = StringBuilder()
@@ -132,7 +134,7 @@ abstract class Route internal constructor(pattern: String) : RouteHandler {
             return true
         } else {
             // Try and match all the tokens
-            return matchRange(request, start, tokenCount)
+            return matchRange(request, start, tokenCount, true)
         }
     }
 }
