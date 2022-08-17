@@ -64,14 +64,14 @@ internal class RoutingTest {
         val routes = arrayOf("a", "b", "c", "d", "e")
 
         val router = createRouter {
-            routes.forEach {value ->
+            routes.forEach { value ->
                 get(value) {
                     responseText(value)
                 }
             }
         }
 
-        routes.forEach {value ->
+        routes.forEach { value ->
             // Create a fake request to the created route
             val fakeRequest = DefaultFullHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.GET, "/$value")
             val fakeInternalRequest = HttpRequest(fakeRequest)
@@ -89,6 +89,44 @@ internal class RoutingTest {
         }
     }
 
+    @Test
+    fun `test like routing`() {
+        val router = createRouter {
+            get("list") {
+                responseText("list")
+            }
+            get("list/:id") {
+                responseText("list id")
+            }
+        }
+
+        run {
+            // Create a fake request to the created route
+            val fakeRequest = DefaultFullHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.GET, "/list")
+            val fakeInternalRequest = HttpRequest(fakeRequest)
+            // Get the response from the router
+            val response = router.handleHttpRequest(fakeInternalRequest)
+            assertEquals(response.status(), HttpResponseStatus.OK)
+            val content = response.content()
+            assert(content.isReadable)
+            val contentText = content.readCharSequence(content.readableBytes(), Charsets.UTF_8)
+            assertEquals("list", contentText)
+        }
+
+        run {
+            // Create a fake request to the created route
+            val fakeRequest = DefaultFullHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.GET, "/list/1")
+            val fakeInternalRequest = HttpRequest(fakeRequest)
+            // Get the response from the router
+            val response = router.handleHttpRequest(fakeInternalRequest)
+            assertEquals(response.status(), HttpResponseStatus.OK)
+            val content = response.content()
+            assert(content.isReadable)
+            val contentText = content.readCharSequence(content.readableBytes(), Charsets.UTF_8)
+            assertEquals("list id", contentText)
+        }
+    }
+
     /**
      * Tests the router handling against the same route with
      * different methods uses and ensures the right response
@@ -99,7 +137,7 @@ internal class RoutingTest {
         val routes = arrayOf("a", "b", "c", "d", "e")
 
         val router = createRouter {
-            routes.forEach {value ->
+            routes.forEach { value ->
                 get(value) {
                     responseText(value)
                 }
@@ -110,7 +148,7 @@ internal class RoutingTest {
             }
         }
 
-        routes.forEach {value ->
+        routes.forEach { value ->
             // Create a fake request to the created route
             val fakeRequest = DefaultFullHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.GET, "/$value")
             val fakeInternalRequest = HttpRequest(fakeRequest)
@@ -127,7 +165,7 @@ internal class RoutingTest {
             assertEquals(value, contentText)
         }
 
-        routes.forEach {value ->
+        routes.forEach { value ->
             // Create a fake request to the created route
             val fakeRequest = DefaultFullHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.POST, "/$value")
             val fakeInternalRequest = HttpRequest(fakeRequest)

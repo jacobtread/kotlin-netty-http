@@ -88,7 +88,7 @@ abstract class Route internal constructor(pattern: String) : RouteHandler {
         if (count == 0) return true
         val requestTokens = request.tokens
         // If we don't have enough tokens
-        if ((requestTokens.size - startIndex) < count) return false
+        if ((requestTokens.size - startIndex) != count) return false
         for (i in 0 until count) {
             val token = patternTokens[i]
             val value = requestTokens[startIndex + i]
