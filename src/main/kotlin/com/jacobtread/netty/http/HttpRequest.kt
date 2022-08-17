@@ -28,11 +28,15 @@ class HttpRequest internal constructor(val http: NettyHttpRequest) {
     private var params: HashMap<String, String>? = null
 
     /**
-     * Wrapper field for accessing the method of the underlying
-     * http request. Used by the Path Route to match the request method
+     * Wrapper field for accessing the method of the underlying http request.
+     * Used by the Path Route to match the request method
      */
-    val method: HttpMethod
-        get() = http.method()
+    val method: HttpMethod get() = http.method()
+
+    /**
+     * Wrapper field for accessing the underlying url of the http request.
+     */
+    val url: String get() = http.uri()
 
     /**
      * Wrapper field for accessing the headers of the underlying
