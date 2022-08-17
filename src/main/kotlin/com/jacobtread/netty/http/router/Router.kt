@@ -24,7 +24,6 @@ import io.netty.handler.codec.http.HttpRequest as NettyHttpRequest
  *
  * @constructor Creates a new empty router handler
  */
-@Sharable
 class Router : SimpleChannelInboundHandler<NettyHttpRequest>(), RoutingGroup {
     /**
      * Whether to display a 404 page when no routes could
@@ -55,6 +54,15 @@ class Router : SimpleChannelInboundHandler<NettyHttpRequest>(), RoutingGroup {
             .addFirst(HttpObjectAggregator(1024 * 8))
             .addFirst(HttpRequestDecoder())
     }
+
+    /**
+     * This handler is sharable because it doesn't store
+     * any state for a particular channel so it can be used
+     * by any connecting channels
+     *
+     * @return Always true
+     */
+    override fun isSharable(): Boolean = true
 
     /**
      * channelRead0 Handles reading the raw netty http requests
@@ -98,8 +106,8 @@ class Router : SimpleChannelInboundHandler<NettyHttpRequest>(), RoutingGroup {
             } else {
                 response(NOT_FOUND)
             }
-        } catch (e: BadRequestException) {
-            return response(BAD_REQUEST)
+        } catch (e: HttpException) {
+            return responseText(e.response, e.contentType, e.status)
         } catch (e: Exception) {
             eventHandler?.onExceptionHandled(e)
             return response(INTERNAL_SERVER_ERROR)

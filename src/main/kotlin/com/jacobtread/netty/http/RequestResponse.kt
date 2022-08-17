@@ -19,7 +19,7 @@ const val HTML_CONTENT_TYPE = "text/html;charset=UTF-8"
 typealias HttpResponse = DefaultFullHttpResponse
 
 /**
- * setHeaders Sets a map of key value pairs as headers on the request
+ * Sets a map of key value pairs as headers on the request
  * that it was invoked upon
  *
  * @param headers The map of headers to set
@@ -32,7 +32,7 @@ fun HttpResponse.setHeaders(headers: Map<String, String>): HttpResponse {
 }
 
 /**
- * setHeader Sets a header on the headers list for
+ * Sets a header on the headers list for
  * the request  that it was invoked upon
  *
  * @param key The key of the header to set
@@ -46,36 +46,47 @@ fun HttpResponse.setHeader(key: String, value: String): HttpResponse {
 }
 
 /**
- * responseBytes Creates a raw bytes' response with an optional
+ * Creates a raw bytes' response with an optional
  * content type parameter
  *
  * @param bytes The raw byte array contents of this response
  * @param contentType The optional content type of this response null for none
+ * @param status The status of this response
  * @return The created HttpResponse from the bytes
  */
-fun responseBytes(bytes: ByteArray, contentType: String? = null): HttpResponse =
-    response(HttpResponseStatus.OK, Unpooled.wrappedBuffer(bytes), contentType)
+fun responseBytes(
+    bytes: ByteArray,
+    contentType: String? = null,
+    status: HttpResponseStatus = HttpResponseStatus.OK
+): HttpResponse = response(status, Unpooled.wrappedBuffer(bytes), contentType)
 
 /**
- * responseText Creates a text response with an optional
+ * Creates a text response with an optional
  * content type parameter by default this is text/plain
  *
  * @param content The string contents to use for the response
  * @param contentType The optional content type of the response
+ * @param status The http status of this response
  * @return The created HttpResponse from the text
  */
-fun responseText(content: String, contentType: String = PLAIN_TEXT_CONTENT_TYPE): HttpResponse =
-    response(HttpResponseStatus.OK, Unpooled.copiedBuffer(content, Charsets.UTF_8), contentType)
+fun responseText(
+    content: String,
+    contentType: String = PLAIN_TEXT_CONTENT_TYPE,
+    status: HttpResponseStatus = HttpResponseStatus.OK,
+): HttpResponse = response(status, Unpooled.copiedBuffer(content, Charsets.UTF_8), contentType)
 
 /**
- * responseHtml Creates a html response with the content
+ * Creates a html response with the content
  * type of text/html from the provided content string
  *
  * @param content The html content
+ * @param status The http status of this response
  * @return The created HttpResponse from the html
  */
-fun responseHtml(content: String): HttpResponse =
-    response(HttpResponseStatus.OK, Unpooled.copiedBuffer(content, Charsets.UTF_8), HTML_CONTENT_TYPE)
+fun responseHtml(
+    content: String,
+    status: HttpResponseStatus= HttpResponseStatus.OK
+): HttpResponse = response(status, Unpooled.copiedBuffer(content, Charsets.UTF_8), HTML_CONTENT_TYPE)
 
 /**
  * Function for easily creating a response with
@@ -102,7 +113,7 @@ fun httpBadRequest(): HttpResponse = response(HttpResponseStatus.BAD_REQUEST)
 fun httpInternalServerError(): HttpResponse = response(HttpResponseStatus.INTERNAL_SERVER_ERROR)
 
 /**
- * responseStatic Creates a response from a static file stored inside the
+ * Creates a response from a static file stored inside the
  * jar resources if the file doesn't exist or is not a valid file name then
  * the fallback file and path will be used instead. If the fallback is also
  * invalid an empty response with the NOT_FOUND status will be used instead
@@ -138,7 +149,7 @@ fun responseResource(
 }
 
 /**
- * response Creates a http response from the provided status, content
+ * Creates a http response from the provided status, content
  * and optional content type. Adds the appropriate headers for content
  * type and length as well as the cross-origin access control headers
  * so that browsers can make POST requests to the server

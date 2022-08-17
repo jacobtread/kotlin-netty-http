@@ -69,13 +69,13 @@ internal class RequestTest {
         try {
             val query1 = fakeInternalRequest.query(keyA)
             assertEquals(valueA, query1)
-        } catch (e: BadRequestException) {
+        } catch (e: HttpException) {
             throw AssertionError("Failed to parse request missing $keyA")
         }
         try {
             val query2 = fakeInternalRequest.query(keyB)
             assertEquals(valueB, query2)
-        } catch (e: BadRequestException) {
+        } catch (e: HttpException) {
             throw AssertionError("Failed to parse request missing $keyB")
         }
     }
@@ -96,14 +96,14 @@ internal class RequestTest {
         try {
             val query1 = fakeInternalRequest.queryInt(keyA)
             assertEquals(valueA, query1)
-        } catch (e: BadRequestException) {
+        } catch (e: HttpException) {
             throw AssertionError("Failed to parse request missing or invalid $keyA")
         }
 
         try {
             val query2 = fakeInternalRequest.queryInt(keyB)
             assertEquals(valueB, query2)
-        } catch (e: BadRequestException) {
+        } catch (e: HttpException) {
             throw AssertionError("Failed to parse request missing or invalid $keyB")
         }
     }
@@ -128,7 +128,7 @@ internal class RequestTest {
         try {
             val query2 = fakeInternalRequest.queryInt(keyB)
             assertEquals(valueB, query2)
-        } catch (e: BadRequestException) {
+        } catch (e: HttpException) {
             throw AssertionError("Failed to parse request missing or invalid $keyB")
         }
     }

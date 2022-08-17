@@ -18,6 +18,10 @@ import io.netty.handler.codec.http.HttpRequest as NettyHttpRequest
  */
 class HttpRequest internal constructor(val http: NettyHttpRequest) {
 
+    /**
+     * Map of key value pairs store don this request. Null
+     * until an attribute is set.
+     */
     private var attributes: HashMap<String, Any>? = null
 
     /**
@@ -155,32 +159,32 @@ class HttpRequest internal constructor(val http: NettyHttpRequest) {
      *
      * @param key The key of the route parameter
      * @param radix The radix to parse the integer using
-     * @throws BadRequestException If the client provided a non integer value for the parameter
+     * @throws HttpException If the client provided a non integer value for the parameter
      * @throws IllegalStateException If the provided key was not a parameter of the request
      * @return The parsed parameter
      */
-    fun paramInt(key: String, radix: Int = 10): Int = param(key).toIntOrNull(radix) ?: throw BadRequestException()
+    fun paramInt(key: String, radix: Int = 10): Int = param(key).toIntOrNull(radix) ?: throwBadRequest()
 
     /**
      * Retrieves the query value with the provided key.
      * Will throw a BadRequestException if the query key was
      * not provided
      *
-     * @see queryOrNull Alternative to this which returns null when not found instead of [BadRequestException]
+     * @see queryOrNull Alternative to this which returns null when not found instead of [HttpException]
      * @see hasQuery Used to check if the query value exists
      * @see queryInt For retrieving query values as integers
      *
-     * @throws BadRequestException Thrown if the query key was not provided
+     * @throws HttpException Thrown if the query key was not provided
      * @param key The key to search for
      * @return The value of the key
      */
-    fun query(key: String): String = query[key] ?: throw BadRequestException()
+    fun query(key: String): String = query[key] ?: throwBadRequest()
 
     /**
      * Retrieves the query value of the provided key.
      * Returning null if the key was not found
      *
-     * @see query Alternative to this which throws [BadRequestException] when not found
+     * @see query Alternative to this which throws [HttpException] when not found
      *
      * @param key The key to search for
      * @return The value of the key or null if it was not provided
@@ -203,11 +207,11 @@ class HttpRequest internal constructor(val http: NettyHttpRequest) {
      *
      * @param key The key to search for
      * @param radix The radix to parse the integer using
-     * @throws BadRequestException Thrown if the query key was not provided
+     * @throws HttpException Thrown if the query key was not provided
      * or if the value was not an integer
      * @return The integer query value
      */
-    fun queryInt(key: String, radix: Int = 10): Int = query[key]?.toIntOrNull(radix) ?: throw BadRequestException()
+    fun queryInt(key: String, radix: Int = 10): Int = query[key]?.toIntOrNull(radix) ?: throwBadRequest()
 
     /**
      * Retrieves the query value of the provided key as
@@ -228,11 +232,11 @@ class HttpRequest internal constructor(val http: NettyHttpRequest) {
      *
      * @see contentString For retrieving the content as a string instead
      *
-     * @throws BadRequestException Thrown if the request doesn't have a body
+     * @throws HttpException Thrown if the request doesn't have a body
      * @return The contents as a byte array
      */
     fun contentBytes(): ByteArray {
-        if (http !is FullHttpRequest) throw BadRequestException()
+        if (http !is FullHttpRequest) throwBadRequest()
         val contentBuffer = http.content()
         val bytes = ByteArray(contentBuffer.readableBytes())
         contentBuffer.readBytes(bytes)
@@ -243,7 +247,7 @@ class HttpRequest internal constructor(val http: NettyHttpRequest) {
      * Reads the body of the request as a ByteArray
      * and decodes it as a UTF-8 string and returns it
      *
-     * @throws BadRequestException Thrown if the request doesn't have a body
+     * @throws HttpException Thrown if the request doesn't have a body
      * @return The contents as a UTF-8 String
      */
     fun contentString(): String = contentBytes().decodeToString()
